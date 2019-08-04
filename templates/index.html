@@ -1,0 +1,125 @@
+<!DOCTYPE html> 
+<html>
+
+<head>
+	<title>Amity OpAlert</title>
+	
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet">
+	<link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+	
+	<script> 
+	function ValidateInputSelect(inputSelect) {
+		if(inputSelect.value=="Choose..") {
+				alert("Choose a year of graduation!");
+				document.form1.year.focus();
+				document.form1.action="javascript:void(0)";
+				return false;
+			}
+		else return true;
+	}
+	function ValidateEmail(inputEmail){
+		var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+		if(inputEmail.value.match(mailformat)) {
+			document.form1.action="/submit";
+			return true;
+		}
+		else {
+			alert("You have entered an invalid email address!");
+			document.form1.email.focus();
+			document.form1.action="javascript:void(0)";
+			return false;
+		}
+	}
+	</script>
+	
+	
+</head>
+
+<body style="background-image: url(&quot;https://wallpapercave.com/wp/GtGLbqS.jpg&quot;); background-position: 100px 50px ; color: #c2c8d1; font-family: 'Comfortaa', cursive;">
+	
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+		<div class="container">
+		  <a class="navbar-brand" href="/">Amity OpAlert</a>
+		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive1" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		  </button>
+		  <div class="collapse navbar-collapse show" id="navbarResponsive">
+			<ul class="navbar-nav ml-auto">
+			  <li class="nav-item active">
+				<a class="nav-link" href="/">Home
+				  <span class="sr-only">(current)</span>
+				</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="/about">About</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="/donate">Donate</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="/unsubscribe">Unsubscribe</a>
+			  </li>
+			</ul>
+		  </div>
+		</div>
+	</nav>
+	
+	<br />
+	<div class="container">
+			<div class="row">
+			  <div class="col col-lg-12 text-center">
+				<h1 class="mt-5">Get Enrolled Now!</h1>
+			  </div>
+			</div>
+			<div class="row">	
+				<div class="col col-lg-12 text-center">
+					<div class="mt-2">Never miss any placement/internship opportunity!</div>
+				</div>
+			</div>
+	</div>
+	<br />
+	<div class="container">
+		<div class="col align-items-center">
+		<form method="post" name="form1" onsubmit="ValidateEmail(document.form1.email); ValidateInputSelect(document.form1.year)">
+			<div class="row justify-content-center mt-5 text-center">
+				<div class="col col-lg-10">
+					<div class="form-group form-control-lg">
+						<label for="email">Enter your email address</label>
+						<input class="form-control form-control-lg" type="email" id="email" placeholder="name@example.com" name="email">
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center text-center mt-5">
+				<div class="col col-lg-4">
+					<div class="form-group form-control-lg">
+					  <label for="inputState">Year of Graduation</label>
+					  <select id="inputState" class="form-control form-control-lg" name="year">
+						<option selected >Choose..</option>
+						<option>{{now-1}}</option>
+						<option>{{now}}</option>
+						<option>{{now+1}}</option>
+					  </select>
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center mt-5 text-center">
+				<div class="col col-lg-6">
+					<button class="btn btn-primary" type="submit">Submit</button>
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+	<br /> 
+  
+</body>
+
+</html>

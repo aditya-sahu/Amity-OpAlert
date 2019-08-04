@@ -1,0 +1,87 @@
+ <!DOCTYPE html> 
+<html>
+
+<head>
+	<title>Amity OpAlert</title>
+	
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link href="https://fonts.googleapis.com/css?family=Comfortaa&display=swap" rel="stylesheet">
+	<link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+	
+	<script>
+	function ValidateEmail(inputEmail){
+		var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+		if(inputEmail.value.match(mailformat)) {
+			document.form1.action="/email_unsubscribe_submit";
+			return true;
+		}
+		else {
+			alert("You have entered an invalid email address!");
+			document.form1.email.focus();
+			document.form1.action="javascript:void(0)";
+			return false;
+		}
+	}
+	</script>
+	
+</head>
+
+<body style="background-image: url(&quot;https://wallpapercave.com/wp/GtGLbqS.jpg&quot;); background-position: 100px 50px ; color: #c2c8d1; font-family: 'Comfortaa', cursive;">
+	
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+		<div class="container">
+		  <a class="navbar-brand" href="/">Amity OpAlert</a>
+		  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive1" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		  </button>
+		  <div class="collapse navbar-collapse show" id="navbarResponsive">
+			<ul class="navbar-nav ml-auto">
+			  <li class="nav-item">
+				<a class="nav-link" href="/">Home
+				</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="/about">About
+				</a>
+			  </li>
+			  <li class="nav-item">
+				<a class="nav-link" href="/donate">Donate</a>
+			  </li>
+			  <li class="nav-item active">
+				<a class="nav-link" href="/unsubscribe">Unsubscribe
+				<span class="sr-only">(current)</span>
+				</a>
+			  </li>
+			</ul>
+		  </div>
+		</div>
+	</nav>
+	<br />
+	<div class="container">
+		<div class="col align-items-center">
+		<form method="post" name="form1" onsubmit="ValidateEmail(document.form1.email)">
+			<div class="row justify-content-center mt-5 text-center">
+				<div class="col col-lg-10">
+					<div class="form-group form-control-lg">
+						<label for="email">Enter your email address</label>
+						<input class="form-control form-control-lg" type="email" id="email" placeholder="name@example.com" name="email">
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center mt-5 text-center">
+				<div class="col col-lg-6">
+					<button class="btn btn-primary" type="submit">Submit</button>
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+	<br />
+  
+</body>
+
+</html>

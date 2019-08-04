@@ -1,0 +1,4 @@
+cron:
+- description: "your description"
+  url: /<urlForCron>
+  schedule: every day 00:00
