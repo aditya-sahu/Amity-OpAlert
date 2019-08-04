@@ -14,17 +14,17 @@ app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
 
 class AmityOpportunity(db.Model):
-    opname = db.Column(db.String(80), unique=False, nullable=True)
-    opyear = db.Column(db.Integer, unique=False, nullable=True)
-    opurl = db.Column(db.String(120), primary_key=True)
+    opname = db.Column(db.String(80))
+    opyear = db.Column(db.Integer)
+    opurl = db.Column(db.String(120))
 
     def __repr__(self):
         return '<AmityOpportunity %r>' % self.opname
 
 class AmityUser(db.Model):
-    registeredOn = db.Column(db.DateTime, primary_key=True)
-    emailId = db.Column(db.String(80), unique=True,nullable=False)
-    yearOfGrad = db.Column(db.Integer, unique=False,nullable=False)
+    registeredOn = db.Column(db.DateTime)
+    emailId = db.Column(db.String(80))
+    yearOfGrad = db.Column(db.Integer)
     email_confirmed = db.Column(db.Boolean(80))
 
 app.config.update(dict(
