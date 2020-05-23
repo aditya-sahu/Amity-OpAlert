@@ -13,6 +13,7 @@ app.config.from_pyfile('config.py')
 
 db = SQLAlchemy(app)
 
+
 class AmityOpportunity(db.Model):
     opname = db.Column(db.String(80))
     opyear = db.Column(db.Integer)
