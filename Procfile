@@ -1,1 +1,1 @@
-web: gunicorn amityopalert.wsgi --log-file -
+web: gunicorn Amity-OpAlert.wsgi --log-file -
