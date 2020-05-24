@@ -217,7 +217,3 @@ def runThisCron():
     
     return 'cronJob has been run on '+ str(datetime.datetime.now())
 
-
-if __name__ == "__main__":
-    app.debug = True
-    app.run()
