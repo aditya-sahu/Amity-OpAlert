@@ -1,32 +1,15 @@
 from flask import Flask, render_template, request, session, flash, url_for
 import datetime
-from flask_sqlalchemy import SQLAlchemy
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Mail, Message
 from bs4 import BeautifulSoup
 import requests
+import pymongo
 
 
 app = Flask(__name__)
-app.secret_key = [secret_key]
+app.secret_key = "yess"
 app.config.from_pyfile('config.py')
-
-db = SQLAlchemy(app)
-
-
-class AmityOpportunity(db.Model):
-    opname = db.Column(db.String(80))
-    opyear = db.Column(db.Integer)
-    opurl = db.Column(db.String(120))
-
-    def __repr__(self):
-        return '<AmityOpportunity %r>' % self.opname
-
-class AmityUser(db.Model):
-    registeredOn = db.Column(db.DateTime)
-    emailId = db.Column(db.String(80))
-    yearOfGrad = db.Column(db.Integer)
-    email_confirmed = db.Column(db.Boolean(80))
 
 app.config.update(dict(
     DEBUG = True,
@@ -34,20 +17,21 @@ app.config.update(dict(
     MAIL_PORT = 465,
     MAIL_USE_TLS = False,
     MAIL_USE_SSL = True,
-    MAIL_USERNAME = 'email',
-    MAIL_PASSWORD = 'pass',
+    MAIL_USERNAME = 'amityopalert@gmail.com',
+    MAIL_PASSWORD = '98@addykool15',
 ))
 
 mail = Mail()
 mail.init_app(app)
 confirm_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])    
 
+client = pymongo.MongoClient("mongodb+srv://addy98:98%40addykool15@cluster-amity-opalert-rxvbh.mongodb.net/test?retryWrites=true&w=majority")
+db = client.amityopdb
+AmityUserCollection = db.AmityUserCollection
+AmityOpportunityCollection = db.AmityOpportunity
 
 def send_confirmation_email(user_email):
-    confirm_url = url_for(
-        'confirm_email',
-        token=confirm_serializer.dumps(user_email, salt='email-confirmation-salt'),
-        _external=True)
+    confirm_url = url_for('confirm_email', token=confirm_serializer.dumps(user_email, salt='email-confirmation-salt'),_external=True)
  
     html = render_template(
         'email_confirmation.html',
@@ -89,6 +73,8 @@ def getData():
             arr.append((i,str(now-1)))
         elif(i.find(str(now+1))!=-1):
             arr.append((i,str(now+1)))
+        elif(i.find(str(now+2))!=-1):
+            arr.append((i,str(now+2)))
         else:
             arr.append((i,'0'))
     index = 0
@@ -103,43 +89,47 @@ def getData():
 def storeData(arr):
     for i in arr:
         #Check if data already exists in db.. if so, then do nothing
-        if(AmityOpportunity.query.filter_by(opurl=i[2]).count()==0):
-            print('adding op:'+i[0])
-            receivers = AmityUser.query.filter_by(yearOfGrad=i[1],email_confirmed=True).all()
+        if(AmityOpportunityCollection.count_documents({"opurl":i[2]})==0):
+            if((AmityUserCollection.count_documents({"yearOfGrad":i[1],"email_confirmed":True})==0)):
+                return
+            if(i[1]==0):
+                receivers = AmityUserCollection.find({"email_confirmed":True})
+            else:
+                receivers = AmityUserCollection.find({"yearOfGrad":i[1],"email_confirmed":True})
             print(i[1])
             receiver=[]
             for some in receivers:
-                receiver.append(some.emailId)
+                receiver.append(some["emailId"])
             print(receiver)
             if(len(receiver)>0):
                 print('sending mail to ',receiver)
                 msg = Message(subject='New Opportunity: '+i[0], body=i[0]+': '+i[2], sender="email", bcc=receiver)
                 mail.send(msg)
-            op=AmityOpportunity(opname=i[0],opyear=i[1],opurl=i[2])
-            db.session.add(op)
-            db.session.commit()
+            op=AmityOpportunityCollection.insert_one({"opname":i[0],"opyear":i[1],"opurl":i[2]}).inserted_id
+            print(op)
         else:
             print('already')
 
 def deleteExpiredOpportunities():
-     mydata = AmityOpportunity.query.all()
+     mydata = AmityOpportunityCollection.find()
      receiveddata = getData()
      flag = False
      for i in mydata:
          for j in receiveddata:
-             if(i.opurl == j[2]):
+             if(i['opurl'] == j[2]):
                  flag = True
                  break
              else:
                  flag = False
          if(flag==False):
-             print('removing op from DB: '+i.opname)
-             AmityOpportunity.query.filter_by(opurl=i.opurl).delete()
-             db.session.commit()
+             print('removing op from DB: '+i['opname'])
+             print(i["opurl"])
+             if(AmityOpportunityCollection.count_documents({"opurl":i["opurl"]})==0):
+                 return
+             AmityOpportunityCollection.delete_one({"opurl":i["opurl"]})
 
 @app.route('/')
 def index():
-    db.create_all()
     now = datetime.datetime.now().year
     return render_template('index.html',now=now)
 
@@ -156,11 +146,17 @@ def donate():
 def about():
     now = datetime.datetime.now()
     birthdate = datetime.datetime(1998, 11, 15, 12, 20)
-    yearold = int((now - birthdate).days / 365)
-    monthold = int((((now-birthdate).days / 365)*10)%10)
-    dayold = (now - birthdate).days
+    years = (birthdate - now).total_seconds() / (365.242*24*3600)
+    yearsInt = int(years)
+    
+    months = (years-yearsInt) * 12
+    monthsInt = int(months)
+    
+    days = (months-monthsInt)*(365.242/12)
+    daysInt = int(days)
+    
     secondold = (now - birthdate).seconds
-    return render_template('about.html', now=now, yearold = yearold, monthold=monthold, dayold = dayold, secondold = secondold)
+    return render_template('about.html', now=now, yearold = -yearsInt, monthold= -monthsInt, dayold = -daysInt)
 
 
 @app.route('/submit', methods = ['POST'])
@@ -169,13 +165,11 @@ def submitted():
     year = request.form['year']
 
     #Check if the email address is already in database, if so, render email already exists page
-    print(AmityUser.query.filter_by(emailId=email).count())
-    if((AmityUser.query.filter_by(emailId=email).count())>0):
+    print(AmityUserCollection.count_documents({"emailId":email}))
+    if(AmityUserCollection.count_documents({"emailId":email})>0):
         return render_template('emailexists.html')
     else:
-        usr=AmityUser(registeredOn=datetime.datetime.now(), emailId=email, yearOfGrad=year, email_confirmed=False)
-        db.session.add(usr)
-        db.session.commit()
+        AmityUserCollection.insert_one({"registeredOn":datetime.datetime.now(), "emailId":email, "yearOfGrad":year, "email_confirmed":False})
     send_confirmation_email(email)
     return render_template('email_confirmation.html')
 
@@ -188,8 +182,8 @@ def email_unsubscribe_submitted():
     email = request.form['email']
 
     #Check if the email address is not in database, if so, render email not exists page
-    print(AmityUser.query.filter_by(emailId=email).count())
-    if((AmityUser.query.filter_by(emailId=email).count()) == 0):
+    print(AmityUserCollection.count_documents({"emailId":email}))
+    if(AmityUserCollection.count_documents({"emailId":email}) == 0):
         return render_template('emailnotexists.html')
     send_unsubscribe_email(email)
     return render_template('email_unsubscribe_submitted.html')
@@ -200,8 +194,7 @@ def unsubscribe_email(token):
         email = confirm_serializer.loads(token,salt='email-unsubscription-salt',max_age=86400)
     except:
         abort(404)
-    AmityUser.query.filter_by(emailId=email).delete()
-    db.session.commit()
+    AmityUserCollection.delete_one({"emailId":email})
     return render_template('email_unsubscribed.html')
 
 
@@ -211,17 +204,14 @@ def confirm_email(token):
         email = confirm_serializer.loads(token,salt='email-confirmation-salt',max_age=86400)
     except:
         abort(404)
-    emailConf = AmityUser.query.filter_by(emailId=email).first()
-    emailConf.email_confirmed=True
-    db.session.commit()
+    AmityUserCollection.update_one({"emailId":email},{"$set":{"email_confirmed":True}})
     return render_template('email_confirmed.html')
 
 @app.route('/cronJob1234', methods = ['GET'])
 def runThisCron():
     arr= getData()
     storeData(arr)
-    AmityUser.query.filter_by(email_confirmed=False).delete()
-    db.session.commit()
+    AmityUserCollection.delete_many({"email_confirmed":False})
     deleteExpiredOpportunities()
 
     
@@ -230,5 +220,4 @@ def runThisCron():
 
 if __name__ == "__main__":
     app.debug = True
-    db.init_app(app)
     app.run()
