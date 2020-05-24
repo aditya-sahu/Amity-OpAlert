@@ -5,6 +5,7 @@ from flask_mail import Mail, Message
 from bs4 import BeautifulSoup
 import requests
 import pymongo
+import os
 
 
 app = Flask(__name__)
@@ -25,7 +26,7 @@ mail = Mail()
 mail.init_app(app)
 confirm_serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])    
 
-client = pymongo.MongoClient("mongodb+srv://addy98:98%40addykool15@cluster-amity-opalert-rxvbh.mongodb.net/test?retryWrites=true&w=majority")
+client = pymongo.MongoClient("mongodb+srv://"+os.environ.get('DBUSERNAME')+":"+os.environ.get('DBPASSWORD')+"@cluster-amity-opalert-rxvbh.mongodb.net/test?retryWrites=true&w=majority")
 db = client.amityopdb
 AmityUserCollection = db.AmityUserCollection
 AmityOpportunityCollection = db.AmityOpportunity
