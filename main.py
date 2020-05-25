@@ -1,3 +1,4 @@
+from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask, render_template, request, session, flash, url_for
 import datetime
 from itsdangerous import URLSafeTimedSerializer
@@ -6,7 +7,6 @@ from bs4 import BeautifulSoup
 import requests
 import pymongo
 import os
-
 
 app = Flask(__name__)
 app.secret_key = "yess"
@@ -97,17 +97,14 @@ def storeData(arr):
                 receivers = AmityUserCollection.find({"email_confirmed":True})
             else:
                 receivers = AmityUserCollection.find({"yearOfGrad":i[1],"email_confirmed":True})
-            print(i[1])
             receiver=[]
             for some in receivers:
                 receiver.append(some["emailId"])
-            print(receiver)
             if(len(receiver)>0):
                 print('sending mail to ',receiver)
                 msg = Message(subject='New Opportunity: '+i[0], body=i[0]+': '+i[2], sender="email", bcc=receiver)
                 mail.send(msg)
             op=AmityOpportunityCollection.insert_one({"opname":i[0],"opyear":i[1],"opurl":i[2]}).inserted_id
-            print(op)
         else:
             print('already')
 
@@ -124,7 +121,6 @@ def deleteExpiredOpportunities():
                  flag = False
          if(flag==False):
              print('removing op from DB: '+i['opname'])
-             print(i["opurl"])
              if(AmityOpportunityCollection.count_documents({"opurl":i["opurl"]})==0):
                  return
              AmityOpportunityCollection.delete_one({"opurl":i["opurl"]})
@@ -166,7 +162,6 @@ def submitted():
     year = request.form['year']
 
     #Check if the email address is already in database, if so, render email already exists page
-    print(AmityUserCollection.count_documents({"emailId":email}))
     if(AmityUserCollection.count_documents({"emailId":email})>0):
         return render_template('emailexists.html')
     else:
@@ -183,7 +178,6 @@ def email_unsubscribe_submitted():
     email = request.form['email']
 
     #Check if the email address is not in database, if so, render email not exists page
-    print(AmityUserCollection.count_documents({"emailId":email}))
     if(AmityUserCollection.count_documents({"emailId":email}) == 0):
         return render_template('emailnotexists.html')
     send_unsubscribe_email(email)
@@ -208,15 +202,23 @@ def confirm_email(token):
     AmityUserCollection.update_one({"emailId":email},{"$set":{"email_confirmed":True}})
     return render_template('email_confirmed.html')
 
-@app.route('/cronJob1234', methods = ['GET'])
 def runThisCron():
     arr= getData()
     storeData(arr)
     AmityUserCollection.delete_many({"email_confirmed":False})
     deleteExpiredOpportunities()
 
-    
-    return 'cronJob has been run on '+ str(datetime.datetime.now())
+@app.route('/cronJob1234', methods = ['GET'])
+runThisCron()
+return 'cronJob has been run on '+ str(datetime.datetime.now())
+
+sched = BlockingScheduler()
+
+@sched.scheduled_job('interval', minutes=150)
+runThisCron()
+print('cronJob has been run on'+ str(datetime.datetime.now())
+
+sched.start()
 
 if __name__ == "__main__":
     app.run()
