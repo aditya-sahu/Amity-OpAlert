@@ -17,8 +17,8 @@ app.config.update(dict(
     MAIL_PORT = 465,
     MAIL_USE_TLS = False,
     MAIL_USE_SSL = True,
-    MAIL_USERNAME = 'amityopalert@gmail.com',
-    MAIL_PASSWORD = '98@addykool15'
+    MAIL_USERNAME = os.environ.get('SMTPEMAILADDRESS'),
+    MAIL_PASSWORD = os.environ.get('SMTPPASSWORD')
 ))
 
 mail = Mail()
