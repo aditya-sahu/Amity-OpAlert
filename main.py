@@ -37,7 +37,8 @@ def send_confirmation_email(user_email):
     html = render_template(
         'email_confirmation.html',
         confirm_url=confirm_url)
-    msg = Message(subject='OpAmity Registration', body='Thanks for joining OpAmity! To verify your account, visit the url and activate it: '+confirm_url+unsubscribeText, sender="email", recipients=[user_email])
+    msg = Message(subject='OpAmity Registration', body='Thanks for joining OpAmity! To verify your account, visit the url and activate it: '+confirm_url, sender="email", recipients=[user_email])
+    msg.html=unsubscribeText
     mail.send(msg)
 
 def send_unsubscribe_email(user_email):
