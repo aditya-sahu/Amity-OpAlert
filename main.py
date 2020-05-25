@@ -1,4 +1,3 @@
-from apscheduler.schedulers.blocking import BlockingScheduler
 from flask import Flask, render_template, request, session, flash, url_for
 import datetime
 from itsdangerous import URLSafeTimedSerializer
@@ -209,17 +208,6 @@ def runThisCron():
     storeData(arr)
     AmityUserCollection.delete_many({"email_confirmed":False})
     deleteExpiredOpportunities()
-
-sched = BlockingScheduler()
-
-@sched.scheduled_job('interval', minutes=150)
-def runThisCron():
-    arr= getData()
-    storeData(arr)
-    AmityUserCollection.delete_many({"email_confirmed":False})
-    deleteExpiredOpportunities()
-
-sched.start()
 
 if __name__ == "__main__":
     app.run()
