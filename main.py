@@ -202,21 +202,22 @@ def confirm_email(token):
     AmityUserCollection.update_one({"emailId":email},{"$set":{"email_confirmed":True}})
     return render_template('email_confirmed.html')
 
+
+@app.route('/cronJob1234', methods = ['GET'])
 def runThisCron():
     arr= getData()
     storeData(arr)
     AmityUserCollection.delete_many({"email_confirmed":False})
     deleteExpiredOpportunities()
 
-@app.route('/cronJob1234', methods = ['GET'])
-runThisCron()
-return 'cronJob has been run on '+ str(datetime.datetime.now())
-
 sched = BlockingScheduler()
 
 @sched.scheduled_job('interval', minutes=150)
-runThisCron()
-print('cronJob has been run on'+ str(datetime.datetime.now())
+def runThisCron():
+    arr= getData()
+    storeData(arr)
+    AmityUserCollection.delete_many({"email_confirmed":False})
+    deleteExpiredOpportunities()
 
 sched.start()
 
